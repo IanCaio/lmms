@@ -166,6 +166,9 @@ public:
 	QColor backgroundShade() const;
 	void setBackgroundShade( const QColor & c );
 
+	// For toggling the capture keyboard feature
+	void toggleCaptureKeyboard(int state);
+
 
 protected:
 	void keyPressEvent( QKeyEvent * ke ) override;
@@ -235,9 +238,6 @@ protected slots:
 	void selectRegionFromPixels( int xStart, int xEnd );
 
 	void clearGhostPattern();
-
-	// For toggling the capture keyboard feature
-	void toggleCaptureKeyboard(int state);
 
 signals:
 	void currentPatternChanged();
@@ -458,8 +458,6 @@ private:
 
 	// Capture Keyboard
 	bool m_captureKeyboard;
-	bool m_captureKeyboardAsk; // Enables/Disables the confirmation dialog
-	NStateButton * m_captureKeyboardButton;
 
 signals:
 	void positionChanged( const MidiTime & );
@@ -504,6 +502,10 @@ public:
 
 	QSize sizeHint() const override;
 
+public slots:
+	// For toggling the capture keyboard feature
+	void toggleCaptureKeyboard(int state);
+
 signals:
 	void currentPatternChanged();
 
@@ -528,6 +530,9 @@ private:
 	ComboBox * m_chordComboBox;
 	QPushButton * m_clearGhostButton;
 
+	// Capture Keyboard
+	bool m_captureKeyboardAsk; // Enables/Disables the confirmation dialog
+	NStateButton * m_captureKeyboardButton;
 };
 
 

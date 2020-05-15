@@ -210,8 +210,7 @@ PianoRoll::PianoRoll() :
 	m_noteBorders( true ),
 	m_ghostNoteBorders( true ),
 	m_backgroundShade( 0, 0, 0 ),
-	m_captureKeyboard( false ),
-	m_captureKeyboardAsk( true )
+	m_captureKeyboard( false )
 {
 	// gui names of edit modes
 	m_nemStr.push_back( tr( "Note Velocity" ) );
@@ -1226,7 +1225,7 @@ void PianoRoll::keyPressEvent(QKeyEvent* ke)
 		// because it also has a function inside the piano roll).
 		if( ke->key() == Qt::Key_Escape)
 		{
-			m_captureKeyboardButton->changeState(0); // Disable the capture keyboard
+			gui->pianoRoll()->toggleCaptureKeyboard(0); // Disable the capture keyboard
 		}
 	}
 
@@ -4333,55 +4332,6 @@ void PianoRoll::zoomingYChanged()
 	update();
 }
 
-// Toggle capture keyboard variable
-void PianoRoll::toggleCaptureKeyboard( int state )
-{
-	// Message box for confirmation
-	QMessageBox mb( tr( "Are you sure you want to capture the keyboard?" ),
-			tr( "Enabling this feature will capture the keyboard to the piano roll, "
-				"making it unusable on other applications until it's disabled.\n"
-				"Are you sure you want to enable it?\n\n"
-				"Hint: Press Esc to quickly disable the keyboard capture." ),
-			QMessageBox::Warning,
-			QMessageBox::Yes,
-			QMessageBox::No,
-			QMessageBox::NoButton,
-			this );
-
-	// Don't ask again checkbox
-	QCheckBox * cb = new QCheckBox("Don't ask me again.");
-	QObject::connect(cb, &QCheckBox::stateChanged, [this](int state){
-		if( static_cast<Qt::CheckState>(state) == Qt::CheckState::Checked ){
-			m_captureKeyboardAsk = false;
-		}
-	});
-	mb.setCheckBox(cb);
-
-	// State 1 = On. State 0 = Off
-	if( state == 1 )
-	{
-		// Answer is Yes if the "Don't ask again" box was ticked
-		int answer = m_captureKeyboardAsk ? mb.exec() : static_cast<int>(QMessageBox::Yes);
-
-		if( answer == static_cast<int>(QMessageBox::Yes) )
-		{
-			this->grabKeyboard();
-			m_captureKeyboard = true;
-		}
-		else
-		{
-			m_captureKeyboardButton->changeState(0);
-		}
-	}
-	else
-	{
-		if( m_captureKeyboard == true ){
-			this->releaseKeyboard();
-			m_captureKeyboard = false;
-		}
-	}
-}
-
 void PianoRoll::quantizeChanged()
 {
 	update();
@@ -4524,12 +4474,28 @@ Note * PianoRoll::noteUnderMouse()
 	return NULL;
 }
 
+// Toggle capture keyboard
+void PianoRoll::toggleCaptureKeyboard( int state )
+{
+	// State 1 = On. State 0 = Off
+	if( state == 1)
+	{
+		this->grabKeyboard();
+		m_captureKeyboard = true;
+	}
+	else
+	{
+		this->releaseKeyboard();
+		m_captureKeyboard = false;
+	}
+}
 
 
 
 PianoRollWindow::PianoRollWindow() :
 	Editor(true, true),
-	m_editor(new PianoRoll())
+	m_editor(new PianoRoll()),
+	m_captureKeyboardAsk( true )
 {
 	setCentralWidget( m_editor );
 
@@ -4599,13 +4565,13 @@ PianoRollWindow::PianoRollWindow() :
 	// Add a toolbar with capture keyboard feature
 	DropToolBar *keyboardControlToolBar = addDropToolBarToTop( tr( "Keyboard controls" ) );
 
-	m_editor->m_captureKeyboardButton = new NStateButton( keyboardControlToolBar );
-	m_editor->m_captureKeyboardButton->setGeneralToolTip( tr("Enable/Disable Keyboard Capture") );
-	m_editor->m_captureKeyboardButton->addState( embed::getIconPixmap( "capture_keyboard_off" ) );
-	m_editor->m_captureKeyboardButton->addState( embed::getIconPixmap( "capture_keyboard_on" ) );
+	m_captureKeyboardButton = new NStateButton( keyboardControlToolBar );
+	m_captureKeyboardButton->setGeneralToolTip( tr("Enable/Disable Keyboard Capture") );
+	m_captureKeyboardButton->addState( embed::getIconPixmap( "capture_keyboard_off" ) );
+	m_captureKeyboardButton->addState( embed::getIconPixmap( "capture_keyboard_on" ) );
 
-	keyboardControlToolBar->addWidget( m_editor->m_captureKeyboardButton );
-	connect( m_editor->m_captureKeyboardButton, SIGNAL( changedState( int ) ), m_editor, SLOT( toggleCaptureKeyboard( int ) ) );
+	keyboardControlToolBar->addWidget( m_captureKeyboardButton );
+	connect( m_captureKeyboardButton, SIGNAL( changedState( int ) ), this, SLOT( toggleCaptureKeyboard( int ) ) );
 
 	addToolBarBreak();
 
@@ -4932,5 +4898,64 @@ void PianoRollWindow::updateStepRecordingIcon()
 	else
 	{
 		m_toggleStepRecordingAction->setIcon(embed::getIconPixmap("record_step_off"));
+	}
+}
+
+// Toggle capture keyboard variable (Window related stuff)
+// That method will only deal with the representation of the button, dialog boxes, etc. The toggling itself is made by
+// PianoRoll:toggleCaptureKeyboard.
+void PianoRollWindow::toggleCaptureKeyboard( int state )
+{
+	// If the method was called by the button signal, the states will match. If it was called by some shortcut (i.e.: Esc)
+	// they won't, and we need to update the button to have the same value.
+	if( m_captureKeyboardButton->state() != state )
+	{
+		m_captureKeyboardButton->changeState( state );
+		return; // After changing the state this function was called again. So we can just return.
+	}
+
+	// Message box for confirmation
+	QMessageBox mb( tr( "Are you sure you want to capture the keyboard?" ),
+			tr( "Enabling this feature will capture the keyboard to the piano roll, "
+				"making it unusable on other applications until it's disabled.\n"
+				"Are you sure you want to enable it?\n\n"
+				"Hint: Press Esc to quickly disable the keyboard capture." ),
+			QMessageBox::Warning,
+			QMessageBox::Yes,
+			QMessageBox::No,
+			QMessageBox::NoButton,
+			this );
+
+	// Don't ask again checkbox
+	QCheckBox * cb = new QCheckBox("Don't ask me again.");
+	QObject::connect(cb, &QCheckBox::stateChanged, [this](int state){
+		if( static_cast<Qt::CheckState>(state) == Qt::CheckState::Checked ){
+			m_captureKeyboardAsk = false;
+		}
+	});
+	mb.setCheckBox(cb);
+
+	// State 1 = On. State 0 = Off
+	if( state == 1 )
+	{
+		// Answer is Yes if the "Don't ask again" box was ticked
+		int answer = m_captureKeyboardAsk ? mb.exec() : static_cast<int>(QMessageBox::Yes);
+
+		if( answer == static_cast<int>(QMessageBox::Yes) )
+		{
+			m_editor->toggleCaptureKeyboard(state);
+		}
+		else
+		{
+			m_captureKeyboardButton->changeState(0);
+		}
+	}
+	else
+	{
+		// This method might be called just to update the button state, so we check if we actually
+		// need to disable the capture keyboard before doing it.
+		if( m_editor->m_captureKeyboard == true ){
+			m_editor->toggleCaptureKeyboard(state);
+		}
 	}
 }
