@@ -28,6 +28,7 @@
 
 #include "AutomationPattern.h"
 #include "ControllerConnection.h"
+#include "Engine.h"
 #include "LocaleHelper.h"
 #include "Mixer.h"
 #include "ProjectJournal.h"
@@ -369,6 +370,33 @@ void AutomatableModel::roundAt( T& value, const T& where ) const
 
 
 
+bool AutomatableModel::isRecording() const
+{
+	// Get patterns that connect to this model
+	QVector<AutomationPattern*> patterns = AutomationPattern::patternsForModel(this);
+	if (patterns.isEmpty()) { return false; }
+	else
+	{
+		for (QVector<AutomationPattern*>::ConstIterator it = patterns.begin(); it != patterns.end(); ++it)
+		{
+			if ((*it)->isRecording()) { return true; }
+		}
+	}
+
+	return false;
+}
+
+
+
+bool AutomatableModel::useControllerValues() const
+{
+	if (!Engine::getSong()->isPlaying() || isRecording()) { return true; }
+
+	return false;
+}
+
+
+
 void AutomatableModel::setAutomatedValue( const float value )
 {
 	m_oldValue = m_value;
@@ -607,7 +635,7 @@ ValueBuffer * AutomatableModel::valueBuffer()
 	float val = m_value; // make sure our m_value doesn't change midway
 
 	ValueBuffer * vb;
-	if( m_controllerConnection && m_controllerConnection->getController()->isSampleExact() )
+	if (m_controllerConnection && m_controllerConnection->getController()->isSampleExact() && useControllerValues())
 	{
 		vb = m_controllerConnection->valueBuffer();
 		if( vb )
@@ -643,7 +671,7 @@ ValueBuffer * AutomatableModel::valueBuffer()
 	{
 		lm = m_linkedModels.first();
 	}
-	if( lm && lm->controllerConnection() && lm->controllerConnection()->getController()->isSampleExact() )
+	if (lm && lm->controllerConnection() && lm->controllerConnection()->getController()->isSampleExact() && lm->useControllerValues())
 	{
 		vb = lm->valueBuffer();
 		float * values = vb->values();

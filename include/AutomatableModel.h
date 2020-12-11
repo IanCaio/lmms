@@ -148,13 +148,16 @@ public:
 	template<class T>
 	inline T value( int frameOffset = 0 ) const
 	{
-		if( hasLinkedModels() || m_controllerConnection != NULL )
+		if (hasLinkedModels() || (m_controllerConnection && useControllerValues()))
 		{
 			return castValue<T>( controllerValue( frameOffset ) );
 		}
 
 		return castValue<T>( m_value );
 	}
+
+	bool isRecording() const;
+	bool useControllerValues() const;
 
 	float controllerValue( int frameOffset ) const;
 
