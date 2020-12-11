@@ -155,7 +155,7 @@ public:
 	static void resolveAllIDs();
 
 	bool isRecording() const { return m_isRecording; }
-	void setRecording( const bool b ) { m_isRecording = b; }
+	void setRecording(const bool b);
 
 	static int quantization() { return s_quantization; }
 	static void setQuantization(int q) { s_quantization = q; }

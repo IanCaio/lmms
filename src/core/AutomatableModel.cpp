@@ -370,27 +370,35 @@ void AutomatableModel::roundAt( T& value, const T& where ) const
 
 
 
-bool AutomatableModel::isRecording() const
+void AutomatableModel::updateIsRecording()
 {
+	// Start assuming it's false
+	m_isRecording = false;
+
 	// Get patterns that connect to this model
 	QVector<AutomationPattern*> patterns = AutomationPattern::patternsForModel(this);
-	if (patterns.isEmpty()) { return false; }
+	if (patterns.isEmpty())
+	{
+		return;
+	}
 	else
 	{
 		for (QVector<AutomationPattern*>::ConstIterator it = patterns.begin(); it != patterns.end(); ++it)
 		{
-			if ((*it)->isRecording()) { return true; }
+			if ((*it)->isRecording())
+			{
+				m_isRecording = true;
+				return;
+			}
 		}
 	}
-
-	return false;
 }
 
 
 
 bool AutomatableModel::useControllerValues() const
 {
-	if (!Engine::getSong()->isPlaying() || isRecording()) { return true; }
+	if (!Engine::getSong()->isPlaying() || m_isRecording) { return true; }
 
 	return false;
 }

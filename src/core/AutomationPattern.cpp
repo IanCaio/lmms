@@ -261,6 +261,22 @@ void AutomationPattern::removeValue( const TimePos & time )
 
 
 
+
+void AutomationPattern::setRecording(const bool b)
+{
+	m_isRecording = b;
+
+	// Updates the m_isRecording value on connected models
+	for (objectVector::const_iterator it = m_objects.begin();
+		it != m_objects.end(); ++it)
+	{
+		(*it)->updateIsRecording();
+	}
+}
+
+
+
+
 void AutomationPattern::recordValue(TimePos time, float value)
 {
 	if( value != m_lastRecordedValue )

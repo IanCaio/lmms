@@ -156,7 +156,8 @@ public:
 		return castValue<T>( m_value );
 	}
 
-	bool isRecording() const;
+	// Updates the value of m_isRecording
+	void updateIsRecording();
 	bool useControllerValues() const;
 
 	float controllerValue( int frameOffset ) const;
@@ -388,6 +389,8 @@ private:
 	//! NULL if not appended to controller, otherwise connection info
 	ControllerConnection* m_controllerConnection;
 
+	// Is any automation pattern recording this model?
+	bool m_isRecording;
 
 	ValueBuffer m_valueBuffer;
 	long m_lastUpdatedPeriod;
