@@ -398,7 +398,11 @@ void AutomatableModel::updateIsRecording() const
 
 bool AutomatableModel::useControllerValues() const
 {
-	if (!Engine::getSong()->isPlaying() || isRecording()) { return true; }
+	// If the song isn't playing we use the controller value
+	// If the song is playing but we are recording values we use the controller value
+	// If the song is playing, we are not recording, but the model isn't automated,
+	// we use the controller value
+	if (!Engine::getSong()->isPlaying() || isRecording() || !isAutomated()) { return true; }
 
 	return false;
 }

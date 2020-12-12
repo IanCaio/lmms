@@ -99,6 +99,31 @@ AutomationPattern::AutomationPattern( const AutomationPattern & _pat_to_copy ) :
 	}
 }
 
+AutomationPattern::~AutomationPattern()
+{
+	// We disconnect all models from the pattern before deleting so
+	// they can update their isRecording and isAutomated values
+	objectVector::iterator it = m_objects.begin();
+
+	while (it != m_objects.end())
+	{
+		auto autModel = dynamic_cast<AutomatableModel*>((*it).data());
+		if (autModel)
+		{
+			// We can't call removeObject directly because we need the
+			// return value of m_objects.erase (iterator to the next object)
+			it = m_objects.erase(it);
+
+			autModel->updateIsAutomated();
+			autModel->updateIsRecording();
+		}
+		else
+		{
+			++it;
+		}
+	}
+}
+
 bool AutomationPattern::addObject( AutomatableModel * _obj, bool _search_dup )
 {
 	if( _search_dup && m_objects.contains(_obj) )
@@ -120,6 +145,7 @@ bool AutomationPattern::addObject( AutomatableModel * _obj, bool _search_dup )
 						Qt::DirectConnection );
 
 	_obj->updateIsAutomated();
+	_obj->updateIsRecording();
 
 	emit dataChanged();
 
@@ -138,6 +164,7 @@ void AutomationPattern::removeObject(AutomatableModel* obj)
 	));
 
 	obj->updateIsAutomated();
+	obj->updateIsRecording();
 
 	emit dataChanged();
 }
