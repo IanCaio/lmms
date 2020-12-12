@@ -57,6 +57,7 @@ public:
 	virtual ~AutomationPattern() = default;
 
 	bool addObject( AutomatableModel * _obj, bool _search_dup = true );
+	void removeObject(AutomatableModel* obj);
 
 	const AutomatableModel * firstObject() const;
 	const objectVector& objects() const;

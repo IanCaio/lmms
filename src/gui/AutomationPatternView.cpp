@@ -114,14 +114,14 @@ void AutomationPatternView::disconnectObject( QAction * _a )
 {
 	JournallingObject * j = Engine::projectJournal()->
 				journallingObject( _a->data().toInt() );
-	if( j && dynamic_cast<AutomatableModel *>( j ) )
+
+	auto autModel = dynamic_cast<AutomatableModel*>(j);
+	if (j && autModel)
 	{
 		float oldMin = m_pat->getMin();
 		float oldMax = m_pat->getMax();
 
-		m_pat->m_objects.erase( std::find( m_pat->m_objects.begin(),
-					m_pat->m_objects.end(),
-				dynamic_cast<AutomatableModel *>( j ) ) );
+		m_pat->removeObject(autModel);
 		update();
 
 		//If automation editor is opened, update its display after disconnection

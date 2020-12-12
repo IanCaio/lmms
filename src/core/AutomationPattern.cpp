@@ -127,6 +127,20 @@ bool AutomationPattern::addObject( AutomatableModel * _obj, bool _search_dup )
 
 
 
+void AutomationPattern::removeObject(AutomatableModel* obj)
+{
+	m_objects.erase(std::find(
+		m_objects.begin(),
+		m_objects.end(),
+		obj
+	));
+
+	emit dataChanged();
+}
+
+
+
+
 void AutomationPattern::setProgressionType(
 					ProgressionTypes _new_progression_type )
 {
