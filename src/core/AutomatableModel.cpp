@@ -85,9 +85,9 @@ AutomatableModel::~AutomatableModel()
 
 
 
-bool AutomatableModel::isAutomated() const
+void AutomatableModel::updateIsAutomated() const
 {
-	return AutomationPattern::isAutomated( this );
+	m_isAutomated = AutomationPattern::isAutomated(this);
 }
 
 
@@ -370,7 +370,7 @@ void AutomatableModel::roundAt( T& value, const T& where ) const
 
 
 
-void AutomatableModel::updateIsRecording()
+void AutomatableModel::updateIsRecording() const
 {
 	// Start assuming it's false
 	m_isRecording = false;
@@ -398,7 +398,7 @@ void AutomatableModel::updateIsRecording()
 
 bool AutomatableModel::useControllerValues() const
 {
-	if (!Engine::getSong()->isPlaying() || m_isRecording) { return true; }
+	if (!Engine::getSong()->isPlaying() || isRecording()) { return true; }
 
 	return false;
 }

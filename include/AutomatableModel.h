@@ -117,7 +117,12 @@ public:
 		return vis.result;
 	}
 
-	bool isAutomated() const;
+	// Updates the value of m_isAutomated
+	void updateIsAutomated() const;
+	bool isAutomated() const
+	{
+		return m_isAutomated;
+	}
 	bool isAutomatedOrControlled() const
 	{
 		return isAutomated() || m_controllerConnection != NULL;
@@ -157,7 +162,12 @@ public:
 	}
 
 	// Updates the value of m_isRecording
-	void updateIsRecording();
+	void updateIsRecording() const;
+	bool isRecording() const
+	{
+		return m_isRecording;
+	}
+
 	bool useControllerValues() const;
 
 	float controllerValue( int frameOffset ) const;
@@ -390,7 +400,9 @@ private:
 	ControllerConnection* m_controllerConnection;
 
 	// Is any automation pattern recording this model?
-	bool m_isRecording;
+	mutable bool m_isRecording;
+	// Is any automation pattern connected to this model?
+	mutable bool m_isAutomated;
 
 	ValueBuffer m_valueBuffer;
 	long m_lastUpdatedPeriod;

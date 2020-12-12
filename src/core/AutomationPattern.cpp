@@ -119,6 +119,8 @@ bool AutomationPattern::addObject( AutomatableModel * _obj, bool _search_dup )
 			this, SLOT( objectDestroyed( jo_id_t ) ),
 						Qt::DirectConnection );
 
+	_obj->updateIsAutomated();
+
 	emit dataChanged();
 
 	return true;
@@ -134,6 +136,8 @@ void AutomationPattern::removeObject(AutomatableModel* obj)
 		m_objects.end(),
 		obj
 	));
+
+	obj->updateIsAutomated();
 
 	emit dataChanged();
 }
