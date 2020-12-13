@@ -710,9 +710,22 @@ TrackContentObjectView * AutomationPattern::createView( TrackView * _tv )
 bool AutomationPattern::isAutomated( const AutomatableModel * _m )
 {
 	TrackContainer::TrackList l;
-	l += Engine::getSong()->tracks();
-	l += Engine::getBBTrackContainer()->tracks();
-	l += Engine::getSong()->globalAutomationTrack();
+
+	// We check if the pointers are null because this method might be called during
+	// LmmsCore::destroy, where getSong() and getBBTrackContainer() return null
+	Song* song = Engine::getSong();
+	BBTrackContainer* bbTrackC = Engine::getBBTrackContainer();
+
+	if (song)
+	{
+		l += song->tracks();
+		l += song->globalAutomationTrack();
+	}
+
+	if (bbTrackC)
+	{
+		l += bbTrackC->tracks();
+	}
 
 	for( TrackContainer::TrackList::ConstIterator it = l.begin(); it != l.end(); ++it )
 	{
@@ -747,9 +760,22 @@ QVector<AutomationPattern *> AutomationPattern::patternsForModel( const Automata
 {
 	QVector<AutomationPattern *> patterns;
 	TrackContainer::TrackList l;
-	l += Engine::getSong()->tracks();
-	l += Engine::getBBTrackContainer()->tracks();
-	l += Engine::getSong()->globalAutomationTrack();
+
+	// We check if the pointers are null because this method might be called during
+	// LmmsCore::destroy, where getSong() and getBBTrackContainer() return null
+	Song* song = Engine::getSong();
+	BBTrackContainer* bbTrackC = Engine::getBBTrackContainer();
+
+	if (song)
+	{
+		l += song->tracks();
+		l += song->globalAutomationTrack();
+	}
+
+	if (bbTrackC)
+	{
+		l += bbTrackC->tracks();
+	}
 
 	// go through all tracks...
 	for( TrackContainer::TrackList::ConstIterator it = l.begin(); it != l.end(); ++it )
