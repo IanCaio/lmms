@@ -127,7 +127,7 @@ EnvelopeAndLfoView::EnvelopeAndLfoView( QWidget * _parent ) :
 	m_releaseKnob = new Knob( knobBright_26, this );
 	m_releaseKnob->setLabel( tr( "REL" ) );
 	m_releaseKnob->move( RELEASE_KNOB_X, ENV_KNOBS_Y );
-    m_releaseKnob->setHintText( tr( "Release:" ), "" );
+	m_releaseKnob->setHintText( tr( "Release:" ), "" );
 
 
 	m_amountKnob = new Knob( knobBright_26, this );
@@ -136,6 +136,14 @@ EnvelopeAndLfoView::EnvelopeAndLfoView( QWidget * _parent ) :
 	m_amountKnob->setHintText( tr( "Modulation amount:" ), "" );
 
 
+
+
+	// TODO: Find a suitable place for the knob or find another way
+	// to change this model
+	m_lfoPhaseKnob = new Knob(knobBright_26, this);
+	m_lfoPhaseKnob->setLabel(tr("PHA"));
+	m_lfoPhaseKnob->move(LFO_PREDELAY_KNOB_X - 20, LFO_KNOB_Y);
+	m_lfoPhaseKnob->setHintText(tr("Phase:"),"");
 
 
 	m_lfoPredelayKnob = new Knob( knobBright_26, this );
@@ -254,6 +262,7 @@ void EnvelopeAndLfoView::modelChanged()
 	m_sustainKnob->setModel( &m_params->m_sustainModel );
 	m_releaseKnob->setModel( &m_params->m_releaseModel );
 	m_amountKnob->setModel( &m_params->m_amountModel );
+	m_lfoPhaseKnob->setModel(&m_params->m_lfoPhaseModel);
 	m_lfoPredelayKnob->setModel( &m_params->m_lfoPredelayModel );
 	m_lfoAttackKnob->setModel( &m_params->m_lfoAttackModel );
 	m_lfoSpeedKnob->setModel( &m_params->m_lfoSpeedModel );
@@ -458,17 +467,16 @@ void EnvelopeAndLfoView::paintEvent( QPaintEvent * )
 			switch( m_params->m_lfoWaveModel.value() )
 			{
 				case EnvelopeAndLfoParameters::SineWave:
-					val = Oscillator::sinSample( phase );
+					val = Oscillator::sinSample(phase + m_params->m_lfoPhaseModel.value());
 					break;
 				case EnvelopeAndLfoParameters::TriangleWave:
-					val = Oscillator::triangleSample(
-								phase );
+					val = Oscillator::triangleSample(phase + m_params->m_lfoPhaseModel.value());
 					break;
 				case EnvelopeAndLfoParameters::SawWave:
-					val = Oscillator::sawSample( phase );
+					val = Oscillator::sawSample(phase + m_params->m_lfoPhaseModel.value());
 					break;
 				case EnvelopeAndLfoParameters::SquareWave:
-					val = Oscillator::squareSample( phase );
+					val = Oscillator::squareSample(phase + m_params->m_lfoPhaseModel.value());
 					break;
 				case EnvelopeAndLfoParameters::RandomWave:
 					if( x % (int)( 900 * m_lfoSpeedKnob->value<float>() + 1 ) == 0 )
@@ -479,7 +487,7 @@ void EnvelopeAndLfoView::paintEvent( QPaintEvent * )
 					break;
 				case EnvelopeAndLfoParameters::UserDefinedWave:
 					val = m_params->m_userWave.
-							userWaveSample( phase );
+							userWaveSample(phase + m_params->m_lfoPhaseModel.value());
 					break;
 			}
 			if( static_cast<f_cnt_t>( cur_sample ) <=

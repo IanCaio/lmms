@@ -107,6 +107,7 @@ EnvelopeAndLfoParameters::EnvelopeAndLfoParameters(
 	m_rEnv( NULL ),
 	m_pahdBufSize( 0 ),
 	m_rBufSize( 0 ),
+	m_lfoPhaseModel(0.0, 0.0, 1.0, 0.001, this, tr("LFO Phase")),
 	m_lfoPredelayModel( 0.0, 0.0, 1.0, 0.001, this, tr( "LFO pre-delay" ) ),
 	m_lfoAttackModel( 0.0, 0.0, 1.0, 0.001, this, tr( "LFO attack" ) ),
 	m_lfoSpeedModel( 0.1, 0.001, 1.0, 0.0001,
@@ -145,6 +146,8 @@ EnvelopeAndLfoParameters::EnvelopeAndLfoParameters(
 	connect( &m_amountModel, SIGNAL( dataChanged() ),
 			this, SLOT( updateSampleVars() ), Qt::DirectConnection );
 
+	connect(&m_lfoPhaseModel, SIGNAL(dataChanged()),
+			this, SLOT(updateSampleVars()), Qt::DirectConnection);
 	connect( &m_lfoPredelayModel, SIGNAL( dataChanged() ),
 			this, SLOT( updateSampleVars() ), Qt::DirectConnection );
 	connect( &m_lfoAttackModel, SIGNAL( dataChanged() ),
@@ -180,6 +183,7 @@ EnvelopeAndLfoParameters::~EnvelopeAndLfoParameters()
 	m_sustainModel.disconnect( this );
 	m_releaseModel.disconnect( this );
 	m_amountModel.disconnect( this );
+	m_lfoPhaseModel.disconnect(this);
 	m_lfoPredelayModel.disconnect( this );
 	m_lfoAttackModel.disconnect( this );
 	m_lfoSpeedModel.disconnect( this );
@@ -212,16 +216,16 @@ inline sample_t EnvelopeAndLfoParameters::lfoShapeSample( fpp_t _frame_offset )
 	switch( m_lfoWaveModel.value()  )
 	{
 		case TriangleWave:
-			shape_sample = Oscillator::triangleSample( phase );
+			shape_sample = Oscillator::triangleSample(phase + m_lfoPhaseModel.value());
 			break;
 		case SquareWave:
-			shape_sample = Oscillator::squareSample( phase );
+			shape_sample = Oscillator::squareSample(phase + m_lfoPhaseModel.value());
 			break;
 		case SawWave:
-			shape_sample = Oscillator::sawSample( phase );
+			shape_sample = Oscillator::sawSample(phase + m_lfoPhaseModel.value());
 			break;
 		case UserDefinedWave:
-			shape_sample = m_userWave.userWaveSample( phase );
+			shape_sample = m_userWave.userWaveSample(phase + m_lfoPhaseModel.value());
 			break;
 		case RandomWave:
 			if( frame == 0 )
@@ -232,7 +236,7 @@ inline sample_t EnvelopeAndLfoParameters::lfoShapeSample( fpp_t _frame_offset )
 			break;
 		case SineWave:
 		default:
-			shape_sample = Oscillator::sinSample( phase );
+			shape_sample = Oscillator::sinSample(phase + m_lfoPhaseModel.value());
 			break;
 	}
 	return shape_sample * m_lfoAmount;
@@ -348,6 +352,7 @@ void EnvelopeAndLfoParameters::saveSettings( QDomDocument & _doc,
 	m_releaseModel.saveSettings( _doc, _parent, "rel" );
 	m_amountModel.saveSettings( _doc, _parent, "amt" );
 	m_lfoWaveModel.saveSettings( _doc, _parent, "lshp" );
+	m_lfoPhaseModel.saveSettings(_doc, _parent, "lpha");
 	m_lfoPredelayModel.saveSettings( _doc, _parent, "lpdel" );
 	m_lfoAttackModel.saveSettings( _doc, _parent, "latt" );
 	m_lfoSpeedModel.saveSettings( _doc, _parent, "lspd" );
@@ -370,6 +375,7 @@ void EnvelopeAndLfoParameters::loadSettings( const QDomElement & _this )
 	m_releaseModel.loadSettings( _this, "rel" );
 	m_amountModel.loadSettings( _this, "amt" );
 	m_lfoWaveModel.loadSettings( _this, "lshp" );
+	m_lfoPhaseModel.loadSettings(_this, "lpha");
 	m_lfoPredelayModel.loadSettings( _this, "lpdel" );
 	m_lfoAttackModel.loadSettings( _this, "latt" );
 	m_lfoSpeedModel.loadSettings( _this, "lspd" );

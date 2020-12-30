@@ -81,6 +81,7 @@ private:
 	Knob * m_amountKnob;
 
 	// LFO stuff
+	Knob * m_lfoPhaseKnob;
 	Knob * m_lfoPredelayKnob;
 	Knob * m_lfoAttackKnob;
 	TempoSyncKnob * m_lfoSpeedKnob;
